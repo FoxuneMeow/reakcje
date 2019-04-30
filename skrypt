@@ -1,0 +1,156 @@
+// ==UserScript==
+// @name         Reakcje US17
+// @namespace    https://github.com/kranchips37/Reakcje-US17/
+// @version      1.3
+// @description  Zmienia domyślne Facebook-owe reakcje na gify z bohaterami Uniwersum Szkolnej 17
+// @author       kranchips37
+// @match        https://www.facebook.com/*
+// @updateURL    https://github.com/kranchips37/Reakcje-US17/raw/master/reakcje-us17.user.js
+// @downloadURL  https://github.com/kranchips37/Reakcje-US17/raw/master/reakcje-us17.user.js
+// @grant        GM_xmlhttpRequest
+// ==/UserScript==
+(function () {
+    'use strict';
+
+    //
+    // Lista reakcji
+    //
+    const reactions = [
+        {
+            name: "Lubię to",
+            cssc: ["_7j03", "sx_475d7f"],
+            url: "https://likescenter.com/boceto/wp-content/uploads/2019/04/like.png"
+        },
+        {
+            name: "Super",
+            cssc: ["_7j04", "sx_a65d2c"],
+            url: "https://res.cloudinary.com/prvnbist/image/upload/v1492531172/uIjLl6R_cmbnqb.png"
+        },
+        {
+            name: "Ha ha",
+            cssc: ["_7j07", "sx_fc7632"],
+            url: "https://cdn.iconscout.com/icon/free/png-256/facebook-64-189766.png"
+        },
+        {
+            name: "Wow",
+            cssc: ["_7j06", "sx_078c39"],
+            url: "https://facebookads2017.files.wordpress.com/2017/03/wow-reaction.png?w=101&h=10"
+        },
+        {
+            name: "Przykro mi",
+            cssc: ["_7j08", "sx_ca956c"],
+            url: "https://appstickers-cdn.appadvice.com/1153896270/818879420/b0d0732c51940257e0858d8e6a1ee68b-10.png"
+        },
+        {
+            name: "Wrr",
+            cssc: ["_7j05", "sx_683a22"],
+            url: "https://img2.freepng.es/20180408/ffe/kisspng-facebook-messenger-emoticon-smiley-computer-icons-angry-5aca2e8424b869.8666304515231996201504.jpg"
+        }
+    ];
+
+    //
+    // Style
+    //
+    document.head.innerHTML += "<style>" +
+        ".s17.r {border-radius: 24px;}" +
+        ".s17.mag {position: fixed; height: 48px; border-radius: 24px; opacity: 0; visibility: hidden; z-index: 1000; transform: scale(0.1); margin-left: -32px; margin-top: -32px; transition-property: opacity, visibility, transform, margin-left, margin-top, left, top; transition-duration: 0.5s, 0.5s, 0.3s, 1.0s, 1.0s, 0.1s, 0.1s; transition-delay: 0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0s, 0s; box-shadow: 0 0 0 3px #fff; pointer-events: none;}" + // transition-delay:0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0, 0;
+        ".s17.mag[show] {opacity: 1; visibility: visible; margin-left: 0; margin-top: 0; transform: scale(1);  transition-property: opacity, visibility, transform, margin-left, margin-top, left, top; transition-duration: 0.3s, 0.3s, 0.3s, 0.3s, 0.3s, 0.1s, 0.1s; transition-delay: 0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0s, 0s; }" +
+        "._7j02._7j0g._hly, ._9-- {background-position: 0 0 !important; background-size: 16px 16px !important; border-radius: 8px;}" +
+        "._7j03._7j02._7j0g._hly, ._2p78._2p7a._9--.sx_475d7f {background-image: url(" + reactions[0].url + ") !important;}" +
+        "._7j04._7j02._7j0g._hly, ._2p78._2p7a._9--.sx_a65d2c {background-image: url(" + reactions[1].url + ") !important;}" +
+        "._7j07._7j02._7j0g._hly, ._2p78._2p7a._9--.sx_fc7632 {background-image: url(" + reactions[2].url + ") !important;}" +
+        "._7j06._7j02._7j0g._hly, ._2p78._2p7a._9--.sx_078c39 {background-image: url(" + reactions[3].url + ") !important;}" +
+        "._7j08._7j02._7j0g._hly, ._2p78._2p7a._9--.sx_ca956c {background-image: url(" + reactions[4].url + ") !important;}" +
+        "._7j05._7j02._7j0g._hly, ._2p78._2p7a._9--.sx_683a22 {background-image: url(" + reactions[5].url + ") !important;}" +
+    "</style>";
+
+    let body = document.body;
+
+    let observerConfig = {
+        childList: true,
+        subtree: true
+    };
+
+    let containerObserver = new MutationObserver(mutationCallback);
+    containerObserver.observe(body, observerConfig);
+
+    //
+    // Odwołanie pod pojawieniu się menu z reakcjami
+    //
+    function mutationCallback(list, observer) {
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].addedNodes[0] != undefined && list[i].addedNodes[0].classList != undefined && list[i].target != undefined) {
+                if (list[i].addedNodes[0].classList.contains("_1oxj")) {
+                    if (list[i].addedNodes[0].querySelector("._1ef0 > canvas") != null) {
+                        let parent = list[i].addedNodes[0];
+                        replaceCanvas(parent);
+                        break;
+                    }
+                }
+
+                if (list[i].target.classList.contains("_1ef0")) {
+                    let ele = list[i].addedNodes[0].parentElement.parentElement.parentElement.parentElement;
+
+                    if (ele.getAttribute("data-testid") == "reaction_animating_8") {
+                        let parent = ele.parentElement.parentElement.parentElement.parentElement;
+                        replaceCanvas(parent);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    //
+    // Lupa
+    //
+    let magnifier = document.createElement("img");
+    magnifier.className = "s17 mag";
+    document.body.appendChild(magnifier);
+
+    document.body.addEventListener("mouseover", function (e) {
+        if (e.target.classList.contains("_7j02") || e.target.classList.contains("_9--")) {
+            showMagnifier(e);
+        }
+    });
+
+    function showMagnifier(e) {
+        for (let i = 0; i < reactions.length; i++) {
+            for (let j = 0; j < reactions[i].cssc.length; j++) {
+                if (e.target.classList.contains(reactions[i].cssc[j])) {
+                    magnifier.src = reactions[i].url;
+                    break;
+                }
+            }
+        }
+
+        e.target.addEventListener("mousemove", moveMagnifier);
+        e.target.addEventListener("mouseout", hideMagnifier);
+
+        moveMagnifier(e);
+        magnifier.setAttribute("show", "");
+    };
+
+    function moveMagnifier(e) {
+        magnifier.style.left = (e.x + 8) + "px";
+        magnifier.style.top = (e.y + 8) + "px";
+    }
+
+    function hideMagnifier(e) {
+        e.target.removeEventListener("mousemove", moveMagnifier);
+        e.target.removeEventListener("mouseout", hideMagnifier);
+        magnifier.removeAttribute("show");
+    }
+
+    //
+    // Funkcja do podmieniania domyślnych canvas'ów na obrazki
+    //
+    function replaceCanvas(menu) {
+        containerObserver.disconnect();
+        let canvasArr = menu.querySelectorAll("._1ef0 > canvas");
+        for (let i = 0; i < canvasArr.length; i++) {
+            canvasArr[i].outerHTML = "<img src='" + reactions[i].url + "' width='39' height='39' class='s17 r'>";
+        }
+        containerObserver.observe(body, observerConfig);
+    }
+})();
